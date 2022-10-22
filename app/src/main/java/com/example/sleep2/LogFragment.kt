@@ -1,31 +1,38 @@
 package com.example.sleep2
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
-
+class LogFragment : Fragment() {
     lateinit var sleeps: MutableList<Sleep>
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    }
 
-        val sleepsRv = findViewById<RecyclerView>(R.id.sleepsRv)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        // Inflate the layout for this fragment
+        val view = inflater.inflate(R.layout.fragment_log, container, false)
+
+        val sleepsRv = view.findViewById<RecyclerView>(R.id.sleepsRv)
         sleeps = mutableListOf()
         val adapter = SleepAdapter(sleeps)
 
         lifecycleScope.launch {
-            (application as SleepApplication).db.sleepDao().getAll().collect { databaseList ->
+            (activity?.application as SleepApplication).db.sleepDao().getAll().collect { databaseList ->
                 databaseList.map { entity ->
                     Sleep(
                         entity.date,
@@ -41,12 +48,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         sleepsRv.adapter = adapter
-        sleepsRv.layoutManager = LinearLayoutManager(this)
+        sleepsRv.layoutManager = LinearLayoutManager(context)
 
+        return view
+    }
 
-        findViewById<Button>(R.id.createBtn).setOnClickListener{
-            val intent = Intent(this@MainActivity, SleepEntryActivity::class.java)
-            startActivity(intent)
+    companion object {
+        fun newInstance(): LogFragment {
+            return LogFragment()
         }
     }
 }
